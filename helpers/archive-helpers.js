@@ -47,12 +47,20 @@ exports.addUrlToList = function(url, callback) {
     if (err) {
       throw err;
     }
-    console.log('The file has been saved!');
   });
+  callback();
 };
 
 exports.isUrlArchived = function(url, callback) {
+  callback(fs.existsSync(exports.paths.archivedSites + '/' + url));
 };
 
 exports.downloadUrls = function(urls) {
+  _.each(urls, function(url) {
+    fs.writeFile(exports.paths.archivedSites + '/' + url, 'Ali', (err) => {
+      if (err) {
+        throw err;
+      }
+    });
+  });
 };
