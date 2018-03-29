@@ -26,12 +26,29 @@ exports.initialize = function(pathsObj) {
 // modularize your code. Keep it clean!
 
 exports.readListOfUrls = function(callback) {
+  fs.readFile(exports.paths.list, 'utf8', (err, data) => {
+    if (err) {
+      throw err;
+    }
+    data = data.split('\n');
+    callback(data);
+  });
 };
 
+
 exports.isUrlInList = function(url, callback) {
+  exports.readListOfUrls(function(data) {
+    callback(data.includes(url));
+  });
 };
 
 exports.addUrlToList = function(url, callback) {
+  fs.appendFile(exports.paths.list, url, (err) => {
+    if (err) {
+      throw err;
+    }
+    console.log('The file has been saved!');
+  });
 };
 
 exports.isUrlArchived = function(url, callback) {
