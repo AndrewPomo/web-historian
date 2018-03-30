@@ -2,32 +2,30 @@ var path = require('path');
 var httpHelp = require('./http-helpers');
 var archive = require('../helpers/archive-helpers');
 var fs = require('fs');
-
-// require more modules/folders here!
-
-// var headers = {
-//   'access-control-allow-origin': '*',
-//   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-//   'access-control-allow-headers': 'content-type, accept',
-//   'access-control-max-age': 10, // Seconds.
-//   'Content-Type': 'application/json'
-// };
-
-// var sendResponse = function(response, data, statusCode) {
-//   statusCode = statusCode || 200;
-  
-//   response.end(JSON.stringify(data));
-// };
+var fetcher = require('../workers/htmlfetcher.js');
 
 exports.handleRequest = function (req, res) {
   if (req.url === '/favicon.ico') {
     res.writeHead(404);
-    
+    res.end(); 
   }
-  debugger;
+
   console.log(req.url, req.method);
+  
   if(req.method === 'GET') {
-    httpHelp.serveAssets(res, req.url);
+    if(req.url === '/' || req.url === '/styles.css') {
+      fetcher.downloadAll(archive.paths.list);
+      httpHelp.serveAssets(res, req.url);
+    } else {
+      archive.isUrlArchived(req.url, function(exists) {
+        if (exists){
+          httpHelp.serveArchives(res, req.url);
+        } else {
+          res.writeHead(404);
+          res.end();
+        }
+      });
+    }
   }
   
   if (req.url === '/' && req.method === 'POST') {
@@ -39,13 +37,23 @@ exports.handleRequest = function (req, res) {
       
       // Remove 'url=' from body
       body = body.substr(4);
+      
       body = body + '\n';
       
-      // find a way to append body to './sites.txt'
-      archive.addUrlToList(body);
+      archive.addUrlToList(body, function () {        
+        archive.isUrlArchived(body, function(exists) {
+          if (exists){
+            console.log('tried to load archive')
+            httpHelp.serveArchives(res, body);
+          } else {
+            console.log('tried to load loading page')
+            httpHelp.serveAssets(res, '/loading.html');
+          }
+        }); 
+      });
       console.log(body);
     });
-    httpHelp.serveAssets(res, req.url);
+    
   }
   
   // res.end(archive.paths.list);

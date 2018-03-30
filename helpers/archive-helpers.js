@@ -1,6 +1,9 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var httpHelp = require('../web/http-helpers');
+var fetcher = require('../workers/htmlfetcher.js');
+var axios = require('axios');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -57,10 +60,22 @@ exports.isUrlArchived = function(url, callback) {
 
 exports.downloadUrls = function(urls) {
   _.each(urls, function(url) {
-    fs.writeFile(exports.paths.archivedSites + '/' + url, 'Ali', (err) => {
-      if (err) {
-        throw err;
-      }
+    axios({
+      method:'get',
+      url:'http://' + url,
+      responseEncoding: 'utf8'
+    })
+    .then(function (response) {
+      
+      fs.writeFile(exports.paths.archivedSites + '/' + url, response.data, (err) => {
+        if (err) {
+          throw err;
+        }
+      });
+    })
+    .catch(function (error) {
+      console.log(error);
     });
+    console.log(url, 'was downloaded')
   });
 };

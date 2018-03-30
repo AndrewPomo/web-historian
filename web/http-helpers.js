@@ -20,10 +20,27 @@ exports.serveAssets = function(res, asset, callback) {
     assetPath = archive.paths.siteAssets + '/index.html';
   }
   
+  if (asset === '/loading.html') {
+    contentType = 'text/html';
+    assetPath = archive.paths.siteAssets + '/loading.html';
+  }
+  
   if (asset === '/styles.css') {
     contentType = 'text/css';
     assetPath = archive.paths.siteAssets + '/styles.css';
   }
+  
+  fs.readFile(assetPath,function (err, data){
+    res.writeHead(200, {'Content-Type': contentType,'Content-Length':data.length});
+    res.write(data);
+    res.end();
+  });
+};
+
+exports.serveArchives = function(res, asset) {
+  
+  contentType = 'text/html';
+  assetPath = archive.paths.archivedSites + asset;
   
   fs.readFile(assetPath,function (err, data){
     res.writeHead(200, {'Content-Type': contentType,'Content-Length':data.length});
